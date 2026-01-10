@@ -35,6 +35,9 @@
         <label for="course">Course:</label>
         <input type="text" id="course" name="course" value="{{ student['course'] }}" required>
 
+        <label for="mobile">Mobile:</label>
+        <input type="text" id="mobile" name="mobile" value="{{ student['mobile']}}"  pattern ="[0-9]{10}" maxlength="10" required>
+
         <button type="submit" class="btn btn-submit">Update Student</button>
         <a href="{{ url_for('index') }}" class="btn btn-cancel">Cancel</a>
     </form>

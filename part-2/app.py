@@ -15,6 +15,7 @@ Prerequisites: Complete part-1 first
 
 from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
+import re
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Required for flash messages
@@ -35,11 +36,17 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT NOT NULL,
-            course TEXT NOT NULL
-        )
+            course TEXT NOT NULL,
+            mobile INTEGER NOT NULL
+        );
     ''')
     conn.commit()
     conn.close()
+
+
+#Validation function
+def is_valid_mobile(mobile):
+    return re.fullmatch(r"[0-9]{10}", mobile)
 
 
 # =============================================================================
@@ -52,11 +59,29 @@ def add_student():
         name = request.form['name']  # Get data from form field named 'name'
         email = request.form['email']
         course = request.form['course']
+        mobile = request.form['mobile']
+
+     #  MOBILE VALIDATION (YAHI LAGTI HAI)
+        if not is_valid_mobile(mobile):
+            flash('Invalid mobile number! Enter 10 digits.', 'danger')
+            return redirect(url_for('add_student'))
 
         conn = get_db_connection()
+
+    # EMAIL ALREADY EXISTS CHECK
+        existing_email = conn.execute(
+            'SELECT * FROM students WHERE email = ?',
+            (email,)
+        ).fetchone()
+
+        if existing_email:
+            conn.close()
+            flash('Email already exists! Please use another email.', 'danger')
+            return redirect(url_for('add_student'))
+        
         conn.execute(
-            'INSERT INTO students (name, email, course) VALUES (?, ?, ?)',
-            (name, email, course)
+            'INSERT INTO students (name, email, course, mobile) VALUES (?, ?, ?, ?)',
+            (name, email, course, mobile)
         )
         conn.commit()
         conn.close()
@@ -91,10 +116,28 @@ def edit_student(id):
         name = request.form['name']
         email = request.form['email']
         course = request.form['course']
+        mobile = request.form['mobile']
+        
+         # MOBILE VALIDATION (YAHIN)
+        if not is_valid_mobile(mobile):
+            flash('Invalid mobile number! Enter 10 digits.', 'danger')
+            conn.close()
+            return redirect(url_for('edit_student', id=id))
+        
+        # EMAIL EXISTS CHECK (exclude current student)
+        existing_email = conn.execute(
+            'SELECT * FROM students WHERE email = ? AND id != ?',
+            (email, id)
+        ).fetchone()
 
+        if existing_email:
+            conn.close()
+            flash('Email already exists for another student!', 'danger')
+            return redirect(url_for('edit_student', id=id))
+        
         conn.execute(
-            'UPDATE students SET name = ?, email = ?, course = ? WHERE id = ?',
-            (name, email, course, id)  # Update WHERE id matches
+            'UPDATE students SET name = ?, email = ?, course = ?, mobile = ? WHERE id = ?',
+            (name, email, course, mobile, id)  # Update WHERE id matches
         )
         conn.commit()
         conn.close()
@@ -121,6 +164,22 @@ def delete_student(id):
 
     flash('Student deleted!', 'danger')  # Show delete message
     return redirect(url_for('index'))
+
+# =============================================================================
+#  Search-  by name
+# =============================================================================
+@app.route('/search')
+def search():
+    query = request.args.get('q')
+
+    conn = get_db_connection()
+    students = conn.execute(
+        "SELECT * FROM students WHERE name LIKE ?",
+        ('%' + query + '%',)
+    ).fetchall()
+    conn.close()
+
+    return render_template('index.html', students=students)
 
 
 if __name__ == '__main__':

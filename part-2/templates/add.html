@@ -30,10 +30,25 @@
 
         <label for="course">Course:</label>
         <input type="text" id="course" name="course" required placeholder="Enter course name">
+     
+        <label for="mobile">Mobile:</label>
+        <input type="text" id="mobile" name="mobile" pattern="[0-9]{10}" maxlength="10" placeholder="Enter 10 digit mobile number" required>
 
         <button type="submit" class="btn btn-submit">Add Student</button>
         <a href="{{ url_for('index') }}" class="btn btn-cancel">Cancel</a>
     </form>
+
+   
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
 
     <hr>
     <p><strong>Tip:</strong> The "name" attribute in input fields must match request.form['name'] in Python!</p>

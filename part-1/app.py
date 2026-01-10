@@ -62,10 +62,14 @@ def index():
 @app.route('/add')
 def add_sample_student():
     """Add a sample student to database (for testing)"""
+    students=[
+        ('Mariya','mariya@gamil.com','IMCA'),
+        ('DJ','dj@gamil.com','IMCA')
+    ]
     conn = get_db_connection()
-    conn.execute(
+    conn.executemany(
         'INSERT INTO students (name, email, course) VALUES (?, ?, ?)',
-        ('John Doe', 'john@example.com', 'Python')  # ? are placeholders (safe from SQL injection)
+        students# ? are placeholders (safe from SQL injection)
     )
     conn.commit()  # Don't forget to commit!
     conn.close()
