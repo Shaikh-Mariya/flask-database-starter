@@ -7,7 +7,14 @@
         h1 { color: #2c3e50; }
         form { background: white; padding: 30px; border-radius: 8px; max-width: 400px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
         textarea { height: 100px; resize: vertical; }
         .btn { padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
         .btn-submit { background: #9b59b6; color: white; }
@@ -21,8 +28,18 @@
         <label for="name">Course Name:</label>
         <input type="text" id="name" name="name" required placeholder="e.g., Machine Learning">
 
+
         <label for="description">Description (optional):</label>
         <textarea id="description" name="description" placeholder="Brief description of the course..."></textarea>
+
+        <!-- Teacher Dropdown Added -->
+        <label for="teacher">Select Teacher:</label>
+        <select id="teacher" name="teacher_id" required>
+            <option value="">-- Choose Teacher --</option>
+            {% for teacher in teachers %}
+                <option value="{{ teacher.id }}">{{ teacher.name }}</option>
+            {% endfor %}
+        </select>
 
         <button type="submit" class="btn btn-submit">Add Course</button>
         <a href="{{ url_for('courses') }}" class="btn btn-cancel">Cancel</a>

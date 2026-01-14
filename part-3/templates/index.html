@@ -29,8 +29,9 @@
     <nav>
         <a href="{{ url_for('index') }}">Students</a>
         <a href="{{ url_for('courses') }}">Courses</a>
+        <a href="{{url_for('teachers')}}">Teachers</a>
     </nav>
-
+    
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -40,6 +41,25 @@
     {% endwith %}
 
     <a href="{{ url_for('add_student') }}" class="btn btn-add">+ Add New Student</a>
+    <a href="{{ url_for('add_teacher') }}" class="btn btn-add">+ Add New Teacher</a>
+    
+    <div style="margin:20px 0;">
+    <a href="{{ url_for('index') }}" class="btn">All</a>
+    <a href="{{ url_for('students_sorted') }}" class="btn">A → Z</a>
+    <a href="{{ url_for('students_latest') }}" class="btn">Latest</a>
+    <a href="{{ url_for('top_students') }}" class="btn">Top 5</a>
+
+    <form action="{{ url_for('students_by_course') }}" method="get" style="display:inline-block; margin-left:15px;">
+        <select name="course_id" required>
+            <option value="">Select Course</option>
+            {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn">Filter</button>
+    </form>
+</div>
+
 
     {% if students %}
         <table>
@@ -69,6 +89,7 @@
     {% endif %}
 
     <hr>
+    
     <p><strong>Notice:</strong> We use <code>student.course.name</code> to access the related course - that's the power of ORM relationships!</p>
 </body>
 </html>
