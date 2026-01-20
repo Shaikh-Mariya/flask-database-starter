@@ -38,7 +38,7 @@ class Author(db.Model):
     city = db.Column(db.String(100))
 
     # relationship
-    books = db.relationship('Book', backref='author_obj', lazy=True)
+    books = db.relationship('Book', backref='author_obj', passive_deletes=True,lazy=True)
 
     def to_dict(self):
         return {
@@ -53,8 +53,8 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     author_id = db.Column(db.Integer,
-                          db.ForeignKey('author.id'),
-                          nullable=False)
+                          db.ForeignKey('author.id',ondelete='SET NULL'),
+                          nullable=True)
     year = db.Column(db.Integer)
     isbn = db.Column(db.String(20), unique=True)
     category = db.Column(db.String(50))
@@ -64,7 +64,7 @@ class Book(db.Model):
         return {
             'id': self.id,
             'title': self.title,
-            'author': self.author_obj.name,
+            'author': self.author_obj.name if self.author_obj else None,
             'author_id': self.author_id,
             'year': self.year,
             'isbn': self.isbn,
@@ -271,12 +271,11 @@ def delete_book(id):
 def delete_author(id):
     author = Author.query.get_or_404(id)
 
-    if author.books:
-        return jsonify({'error': 'Author has books'}), 400
-
     db.session.delete(author)
     db.session.commit()
-    return jsonify({'success': True})
+
+    return jsonify({'success': True, 'message': 'Author deleted'})
+
 
 # EXERCISE: 4  add- sorting api
 @app.route("/api/books-with-sorting", methods=["GET"])
