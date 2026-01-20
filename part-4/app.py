@@ -277,6 +277,34 @@ def delete_author(id):
     return jsonify({'success': True, 'message': 'Author deleted'})
 
 
+# EXERCISE 3: /api/books with pagination
+@app.route('/api/books-with-pagination', methods=['GET'])
+def get_books_with_pagination():
+
+    # get query params
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=10, type=int)
+
+    # query books
+    pagination = Book.query.paginate(
+        page=page,
+        per_page=per_page,
+        error_out=False
+    )
+
+    books = pagination.items
+
+    return jsonify({
+        "success": True,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": pagination.pages,
+        "total_records": pagination.total,
+        "count": len(books),
+        "books": [book.to_dict() for book in books]
+    })
+
+
 # EXERCISE: 4  add- sorting api
 @app.route("/api/books-with-sorting", methods=["GET"])
 def books_with_sorting():
