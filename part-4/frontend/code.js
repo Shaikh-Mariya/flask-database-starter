@@ -27,6 +27,7 @@ function loadBooksSorted(sort, order) {
                 <tr>
                     <td>${b.id}</td>
                     <td>${b.title}</td>
+                    <td>${b.author}</td> 
                     <td>${b.year || ""}</td>
                     <td>${b.category || ""}</td>
                     <td>${b.isbn || ""}</td>
@@ -200,6 +201,7 @@ async function loadBooks() {
         <tr>
             <td>${b.id}</td>
             <td>${b.title}</td>
+            <td>${b.author}</td> 
             <td>${b.year || ""}</td>
             <td>${b.category || ""}</td>
             <td>${b.isbn || ""}</td>
