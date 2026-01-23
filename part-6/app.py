@@ -30,22 +30,62 @@ class Product(db.Model):
     quantity = db.Column(db.Integer, default=0)
     price = db.Column(db.Float, nullable=False)
 
-
 # =============================================================================
 # STEP 2: Create your routes here
 # =============================================================================
 
 # Route 1: Home page - display all products
 # Your code here...
-
+@app.route('/')
+def home():
+    products = Product.query.all()
+    return render_template('index.html', products=products)
 
 # Route 2: Add product page - form to add new product
 # Your code here...
+@app.route('/add', methods=['GET', 'POST'])
+def add_product():
+    if request.method == 'POST':
+        name = request.form['name']
+        quantity = request.form['quantity']
+        price = request.form['price']
 
+        new_product = Product(
+            name=name,
+            quantity=int(quantity),
+            price=float(price)
+        )
+
+        db.session.add(new_product)
+        db.session.commit()
+
+        return redirect(url_for('home'))
+
+    return render_template('add.html')
 
 # Route 3: Delete product
 # Your code here...
+@app.route('/delete/<int:id>')
+def delete_product(id):
+    product = Product.query.get_or_404(id)
+    db.session.delete(product)
+    db.session.commit()
+    return redirect(url_for('home'))
 
+# edit product
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+def edit_product(id):
+    product = Product.query.get_or_404(id)
+
+    if request.method == 'POST':
+        product.name = request.form['name']
+        product.quantity = request.form['quantity']
+        product.price = request.form['price']
+
+        db.session.commit()
+        return redirect(url_for('home'))
+
+    return render_template('edit.html', product=product)
 
 # =============================================================================
 # STEP 3: Initialize database (Already done for you)

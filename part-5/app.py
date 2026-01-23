@@ -18,6 +18,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv  # Load .env file
+from sqlalchemy.exc import OperationalError  
 
 # Load environment variables from .env file
 load_dotenv()
@@ -67,7 +68,13 @@ class Product(db.Model):
 
 @app.route('/')
 def index():
-    products = Product.query.all()
+    try: #<< new>>
+        products = Product.query.all()
+    except OperationalError as e: #<<new>>
+        flash('Database error while fetching products.', 'danger')
+        print(e)
+        products = []
+
     # Show which database is being used
     db_type = 'Unknown'
     db_url = DATABASE_URL.lower()
@@ -83,27 +90,45 @@ def index():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_product():
-    if request.method == 'POST':
-        new_product = Product(
-            name=request.form['name'],
-            price=float(request.form['price']),
-            stock=int(request.form.get('stock', 0)),
-            description=request.form.get('description', '')
-        )
-        db.session.add(new_product)
-        db.session.commit()
-        flash('Product added!', 'success')
-        return redirect(url_for('index'))
+    if request.method == 'POST':    
+        try:  # <<< NEW >>>
 
+            new_product = Product(
+               name=request.form['name'],
+               price=float(request.form['price']),
+               stock=int(request.form.get('stock', 0)),
+               description=request.form.get('description', '')
+            )
+            db.session.add(new_product)
+            db.session.commit()
+            flash('Product added!', 'success')
+            return redirect(url_for('index'))
+        
+        except OperationalError as e: #<<new>>
+            db.session.rollback()
+            flash('Database error while adding product.', 'danger')
+            print(e)
+    
     return render_template('add.html')
 
 
 @app.route('/delete/<int:id>')
 def delete_product(id):
-    product = Product.query.get_or_404(id)
-    db.session.delete(product)
-    db.session.commit()
-    flash('Product deleted!', 'danger')
+            
+    try:  # <<< NEW >>>
+        product = Product.query.get_or_404(id)
+        db.session.delete(product)
+        db.session.commit()
+        flash('Product deleted!', 'danger')
+        
+    except OperationalError as e:     # <<< NEW >>>
+        db.session.rollback()
+        flash('Database error while deleting product.', 'danger')
+        print(e)
+  
+            
+    return redirect(url_for('index'))
+
     return redirect(url_for('index'))
 
 
@@ -112,7 +137,8 @@ def delete_product(id):
 # =============================================================================
 
 def init_db():
-    with app.app_context():
+    try: #<<new>>
+       with app.app_context():
         db.create_all()
         print(f'Database initialized! Using: {DATABASE_URL}')
 
@@ -126,6 +152,10 @@ def init_db():
             db.session.commit()
             print('Sample products added!')
 
+    except OperationalError as e:  #<<new>>
+        db.session.rollback()
+        print("database initiailization failed:",e)
+        exit()
 
 if __name__ == '__main__':
     init_db()

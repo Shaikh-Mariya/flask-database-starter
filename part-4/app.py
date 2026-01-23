@@ -159,7 +159,8 @@ def create_book():
     }), 201
 
 
-# Check for duplicate ISBN
+# CHEK FOR Check for DUPLICATE ISBN
+
     if data.get('isbn'):
         existing = Book.query.filter_by(isbn=data['isbn']).first()
         if existing:
